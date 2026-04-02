@@ -227,6 +227,53 @@
 
             btnReset.addEventListener('click', () => location.reload());
 
+            // Perbaikan Fungsi SHARE hasil scan
+
+            btnShare.addEventListener('click', async () => {
+    if (resultCanvas.width === 0) {
+        showToast('Belum ada hasil scan untuk dibagikan.');
+        return;
+    }
+
+    // 1. Konversi canvas ke Blob
+    resultCanvas.toBlob(async (blob) => {
+        if (!blob) {
+            showToast('Gagal memproses gambar.');
+            return;
+        }
+
+        try {
+            const file = new File([blob], 'scan-dokumen.png', { type: 'image/png' });
+            const shareData = {
+                title: 'Hasil Scan Dokumen',
+                text: 'Berikut adalah hasil scan dokumen saya.',
+                files: [file]
+            };
+
+            // 2. Cek apakah browser mendukung Web Share API untuk File
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share(shareData);
+                showToast('Berhasil dibagikan!');
+            } else {
+                throw new Error('Browser tidak mendukung fitur share file.');
+            }
+        } catch (err) {
+            console.error('Share Error:', err);
+            
+            // 3. Fallback jika Share API gagal atau dibatalkan pengguna
+            if (err.name === 'AbortError') {
+                showToast('Berbagi dibatalkan.');
+            } else {
+                // Jika tidak dukung share, tawarkan copy link atau download otomatis
+                if (confirm('Fitur share tidak didukung di browser ini atau koneksi tidak aman (non-HTTPS).\n\nIngin mengunduh gambar saja?')) {
+                    btnDownload.click();
+                }
+            }
+        }
+    }, 'image/png');
+});
+
+
         })();
     </script>
 </body>
