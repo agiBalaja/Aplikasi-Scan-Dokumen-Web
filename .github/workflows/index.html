@@ -4,134 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aplikasi Scan Dokumen Web</title>
-    <!-- Bootstrap CSS untuk tampilan responsif -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Cropper.js untuk crop gambar -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(to bottom, #87CEEB, #4682B4);
-            padding: 20px;
-        }
-        .container {
-            max-width: 900px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            padding: 25px;
-        }
-        #video-container {
-            position: relative;
-            width: 100%;
-            background: #000;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 15px;
-        }
-        #video {
-            width: 100%;
-            display: block;
-        }
-        #canvas-capture {
-            display: none;
-        }
-        .cropper-container {
-            max-height: 400px;
-            margin-bottom: 15px;
-        }
-        #image-preview {
-            max-width: 100%;
-            display: block;
-        }
-        .btn-group-action {
-            margin: 10px 0;
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .result-canvas {
-            width: 100%;
-            border: 2px solid #dee2e6;
-            border-radius: 8px;
-            background: #fff;
-            margin-top: 15px;
-        }
-        .slider-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-top: 15px;
-        }
-        .slider-label {
-            min-width: 100px;
-        }
-        footer {
-            margin-top: 20px;
-            text-align: center;
-            color: #6c757d;
-        }
-        /* Notifikasi kecil */
-        .toast-notif {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #333;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-size: 14px;
-            z-index: 9999;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-        }
-        .toast-notif.show {
-            opacity: 1;
-        }
-        .error-message {
-            color: #dc3545;
-            font-size: 0.9rem;
-            margin-top: 10px;
-            text-align: center;
-        }
-        .camera-placeholder {
-            background-color: #f8f9fa;
-            padding: 40px;
-            text-align: center;
-            border-radius: 8px;
-            color: #6c757d;
-        }
+        body { background: linear-gradient(to bottom, #87CEEB, #4682B4); padding: 20px; }
+        .container { max-width: 900px; background: white; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1); padding: 25px; }
+        #video-container { position: relative; width: 100%; background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 15px; }
+        #video { width: 100%; display: block; }
+        .cropper-container { max-height: 400px; margin-bottom: 15px; }
+        #image-preview { max-width: 100%; display: block; }
+        .btn-group-action { margin: 10px 0; display: flex; gap: 8px; flex-wrap: wrap; }
+        .result-canvas { width: 100%; border: 2px solid #dee2e6; border-radius: 8px; background: #fff; margin-top: 15px; }
+        .slider-container { display: flex; align-items: center; gap: 15px; margin-top: 15px; }
+        .slider-label { min-width: 100px; }
+        footer { margin-top: 20px; text-align: center; color: #6c757d; }
+        .toast-notif { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 30px; font-size: 14px; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
+        .toast-notif.show { opacity: 1; }
+        .error-message { color: #dc3545; font-size: 0.9rem; margin-top: 10px; text-align: center; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1 class="text-center mb-4">📄 Aplikasi Scan Dokumen</h1>
-        <p class="text-muted text-center">Gunakan kamera atau unggah gambar untuk memindai dokumen. Atur area crop, lalu proses untuk hasil scan yang lebih tajam.</p>
+        <p class="text-muted text-center">Gunakan kamera atau unggah gambar untuk memindai dokumen.</p>
 
-        <!-- Pilihan mode -->
         <div class="btn-group mb-3 w-100" role="group">
             <button class="btn btn-outline-primary" id="btn-camera-mode">📷 Gunakan Kamera</button>
             <button class="btn btn-outline-success" id="btn-upload-mode">🖼️ Unggah Gambar</button>
         </div>
 
-        <!-- Area Kamera -->
         <div id="camera-section" style="display: none;">
             <div id="video-container">
                 <video id="video" autoplay playsinline></video>
             </div>
-            <button class="btn btn-primary w-100" id="btn-capture" disabled>📸 Ambil Gambar dari Kamera</button>
+            <div class="btn-group-action mb-3">
+                <button class="btn btn-primary flex-grow-1" id="btn-capture" disabled>📸 Ambil Gambar</button>
+                <button class="btn btn-warning" id="btn-switch-camera" title="Ganti Kamera">🔄 Putar Kamera</button>
+            </div>
             <div id="camera-error-msg" class="error-message"></div>
-            <p class="mt-2 text-muted small">Pastikan browser mengizinkan akses kamera. Jika tidak muncul, periksa izin situs atau gunakan mode upload.</p>
         </div>
 
-        <!-- Area Upload -->
         <div id="upload-section" style="display: none;">
             <input type="file" id="file-input" accept="image/*" class="form-control">
-            <p class="mt-2 text-muted small">Pilih gambar dari perangkat Anda.</p>
         </div>
 
-        <!-- Preview untuk crop (gambar akan ditampilkan di sini) -->
         <div class="mt-3" id="crop-container" style="display: none;">
             <h5>Atur Area Dokumen:</h5>
             <div class="cropper-container">
@@ -143,7 +59,6 @@
             </div>
         </div>
 
-        <!-- Hasil Scan -->
         <div id="result-section" style="display: none;">
             <h5>Hasil Scan:</h5>
             <canvas id="result-canvas" class="result-canvas"></canvas>
@@ -152,35 +67,31 @@
                 <input type="range" id="threshold-slider" class="form-range" min="0" max="255" value="128">
             </div>
             <div class="btn-group-action">
-                <button class="btn btn-primary" id="btn-download">💾 Unduh Hasil (PNG)</button>
+                <button class="btn btn-primary" id="btn-download">💾 Unduh PNG</button>
                 <button class="btn btn-success" id="btn-share">📤 Share</button>
                 <button class="btn btn-outline-dark" id="btn-reset">⟲ Scan Baru</button>
             </div>
         </div>
 
         <footer>
-            <small>Aplikasi sederhana scan dokumen dengan crop manual dan efek threshold.</small>
+            <small>Aplikasi sederhana scan dokumen - Edit by Gemini</small>
         </footer>
     </div>
 
-    <!-- Canvas tersembunyi untuk memproses gambar -->
     <canvas id="hidden-canvas" style="display: none;"></canvas>
-
-    <!-- Notifikasi sementara -->
     <div id="toast-notification" class="toast-notif"></div>
 
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script>
         (function() {
-            // Elemen DOM
             const video = document.getElementById('video');
             const btnCamera = document.getElementById('btn-camera-mode');
             const btnUpload = document.getElementById('btn-upload-mode');
             const cameraSection = document.getElementById('camera-section');
             const uploadSection = document.getElementById('upload-section');
             const btnCapture = document.getElementById('btn-capture');
+            const btnSwitch = document.getElementById('btn-switch-camera');
             const fileInput = document.getElementById('file-input');
             const cropContainer = document.getElementById('crop-container');
             const imagePreview = document.getElementById('image-preview');
@@ -199,342 +110,124 @@
 
             let cropper = null;
             let stream = null;
+            let currentFacingMode = 'environment'; // Default kamera belakang
 
-            // Fungsi untuk menampilkan notifikasi
             function showToast(msg, duration = 2000) {
                 toast.textContent = msg;
                 toast.classList.add('show');
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                }, duration);
+                setTimeout(() => toast.classList.remove('show'), duration);
             }
 
-            // Fungsi untuk menghentikan kamera
             function stopCamera() {
                 if (stream) {
                     stream.getTracks().forEach(track => track.stop());
                     stream = null;
                 }
-                // Reset status tombol capture dan pesan error
                 btnCapture.disabled = true;
-                cameraErrorMsg.textContent = '';
-                // Kosongkan sumber video
                 video.srcObject = null;
             }
 
-            // Fungsi untuk menampilkan pesan error di area kamera
-            function showCameraError(msg) {
-                cameraErrorMsg.textContent = msg;
-                btnCapture.disabled = true;
-            }
-
-            // Inisialisasi kamera dengan penanganan error yang lebih baik
             async function initCamera() {
-                stopCamera(); // Hentikan kamera yang sedang berjalan
-                cameraErrorMsg.textContent = '';
-
-                // Cek dukungan getUserMedia
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    showCameraError('Browser Anda tidak mendukung akses kamera. Silakan gunakan mode unggah gambar.');
-                    return;
-                }
-
+                stopCamera();
                 try {
-                    // Gunakan facingMode ideal: environment (kamera belakang) jika tersedia, fallback ke default
                     stream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: { ideal: 'environment' } }
+                        video: { facingMode: currentFacingMode }
                     });
                     video.srcObject = stream;
-                    // Tunggu video mulai
-                    await new Promise((resolve) => {
-                        video.onloadedmetadata = () => {
-                            video.play();
-                            resolve();
-                        };
-                    });
                     btnCapture.disabled = false;
-                    showToast('Kamera siap digunakan.', 1500);
+                    showToast(`Kamera ${currentFacingMode === 'user' ? 'Depan' : 'Belakang'} aktif`);
                 } catch (err) {
-                    console.error('Kamera error:', err);
-                    let errorMsg = '';
-                    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                        errorMsg = 'Izin kamera ditolak. Berikan izin untuk menggunakan kamera atau gunakan mode unggah gambar.';
-                    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-                        errorMsg = 'Tidak ada kamera yang terdeteksi. Gunakan mode unggah gambar.';
-                    } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-                        errorMsg = 'Kamera sedang digunakan oleh aplikasi lain. Tutup aplikasi lain dan coba lagi.';
-                    } else if (err.name === 'OverconstrainedError') {
-                        errorMsg = 'Kamera yang diminta tidak tersedia. Coba refresh halaman atau gunakan mode unggah.';
-                    } else {
-                        errorMsg = `Gagal mengakses kamera: ${err.message}`;
-                    }
-                    showCameraError(errorMsg);
-                    // Nonaktifkan tombol capture
-                    btnCapture.disabled = true;
-                    // Tawarkan fallback ke mode upload
-                    if (confirm(`${errorMsg}\nApakah Anda ingin beralih ke mode unggah gambar?`)) {
-                        btnUpload.click();
-                    }
+                    cameraErrorMsg.textContent = "Gagal akses kamera: " + err.message;
                 }
             }
 
-            // Mode kamera
-            btnCamera.addEventListener('click', async () => {
-                // Sembunyikan bagian lain
-                cameraSection.style.display = 'block';
-                uploadSection.style.display = 'none';
-                cropContainer.style.display = 'none';
-                resultSection.style.display = 'none';
-                // Inisialisasi kamera
-                await initCamera();
+            // Event Listener Ganti Kamera
+            btnSwitch.addEventListener('click', () => {
+                currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
+                initCamera();
             });
 
-            // Mode upload
+            btnCamera.addEventListener('click', () => {
+                cameraSection.style.display = 'block';
+                uploadSection.style.display = 'none';
+                initCamera();
+            });
+
             btnUpload.addEventListener('click', () => {
                 stopCamera();
                 cameraSection.style.display = 'none';
                 uploadSection.style.display = 'block';
-                cropContainer.style.display = 'none';
-                resultSection.style.display = 'none';
-                // Reset file input
-                fileInput.value = '';
-                // Hapus cropper jika ada
-                if (cropper) {
-                    cropper.destroy();
-                    cropper = null;
-                }
-                imagePreview.src = '';
             });
 
-            // Capture dari kamera
             btnCapture.addEventListener('click', () => {
-                if (!stream || !video.videoWidth || !video.videoHeight) {
-                    showCameraError('Kamera belum siap. Tunggu sebentar atau refresh halaman.');
-                    return;
-                }
                 const canvas = document.createElement('canvas');
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const dataURL = canvas.toDataURL('image/png');
-                loadImageToCropper(dataURL);
-                // Setelah capture, kamera tetap aktif tapi kita beralih ke crop
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                loadImageToCropper(canvas.toDataURL('image/png'));
             });
 
-            // Upload file
             fileInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (file) {
                     const reader = new FileReader();
-                    reader.onload = (event) => {
-                        loadImageToCropper(event.target.result);
-                    };
+                    reader.onload = (event) => loadImageToCropper(event.target.result);
                     reader.readAsDataURL(file);
                 }
             });
 
-            // Memuat gambar ke cropper
             function loadImageToCropper(src) {
-                if (cropper) {
-                    cropper.destroy();
-                    cropper = null;
-                }
+                if (cropper) cropper.destroy();
                 imagePreview.src = src;
                 cropContainer.style.display = 'block';
-                resultSection.style.display = 'none';
                 imagePreview.onload = () => {
-                    cropper = new Cropper(imagePreview, {
-                        viewMode: 1,
-                        dragMode: 'crop',
-                        autoCropArea: 0.8,
-                        restore: false,
-                        guides: true,
-                        center: true,
-                        highlight: false,
-                        cropBoxMovable: true,
-                        cropBoxResizable: true,
-                        toggleDragModeOnDblclick: false,
-                    });
-                };
-                // Jika gambar gagal dimuat
-                imagePreview.onerror = () => {
-                    showToast('Gambar tidak dapat dimuat. Coba unggah file lain.');
-                    cropContainer.style.display = 'none';
+                    cropper = new Cropper(imagePreview, { viewMode: 1, autoCropArea: 0.8 });
                 };
             }
 
-            // Reset crop
-            btnResetCrop.addEventListener('click', () => {
-                if (cropper) {
-                    cropper.reset();
-                }
-            });
-
-            // Proses scan (crop + filter)
             btnScan.addEventListener('click', () => {
-                if (!cropper) {
-                    showToast('Tidak ada gambar untuk diproses.');
-                    return;
-                }
-                const cropData = cropper.getData(true);
-                const img = imagePreview;
-                if (!img.complete || img.naturalWidth === 0) {
-                    showToast('Gambar belum dimuat sempurna.');
-                    return;
-                }
-
-                const natWidth = img.naturalWidth;
-                const natHeight = img.naturalHeight;
-
-                let x = Math.max(0, cropData.x);
-                let y = Math.max(0, cropData.y);
-                let width = Math.min(cropData.width, natWidth - x);
-                let height = Math.min(cropData.height, natHeight - y);
-                if (width <= 0 || height <= 0) {
-                    showToast('Area crop tidak valid. Silakan atur ulang crop.');
-                    return;
-                }
-
-                hiddenCanvas.width = width;
-                hiddenCanvas.height = height;
-                const ctxHidden = hiddenCanvas.getContext('2d');
-                ctxHidden.drawImage(img, x, y, width, height, 0, 0, width, height);
-
-                applyThresholdToCanvas(hiddenCanvas, resultCanvas, parseInt(thresholdSlider.value));
+                if (!cropper) return;
+                const canvas = cropper.getCroppedCanvas();
+                applyThreshold(canvas);
                 resultSection.style.display = 'block';
             });
 
-            // Fungsi untuk menerapkan grayscale + threshold pada canvas sumber dan menggambar di canvas tujuan
-            function applyThresholdToCanvas(sourceCanvas, destCanvas, thresholdValue) {
-                const ctxSource = sourceCanvas.getContext('2d');
-                const imageData = ctxSource.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+            function applyThreshold(source) {
+                const ctx = hiddenCanvas.getContext('2d');
+                hiddenCanvas.width = source.width;
+                hiddenCanvas.height = source.height;
+                ctx.drawImage(source, 0, 0);
+                
+                const imageData = ctx.getImageData(0, 0, source.width, source.height);
                 const data = imageData.data;
+                const thresh = parseInt(thresholdSlider.value);
 
                 for (let i = 0; i < data.length; i += 4) {
-                    const r = data[i];
-                    const g = data[i+1];
-                    const b = data[i+2];
-                    const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-                    const val = gray >= thresholdValue ? 255 : 0;
-                    data[i] = val;
-                    data[i+1] = val;
-                    data[i+2] = val;
+                    const gray = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
+                    const v = gray >= thresh ? 255 : 0;
+                    data[i] = data[i+1] = data[i+2] = v;
                 }
-
-                destCanvas.width = sourceCanvas.width;
-                destCanvas.height = sourceCanvas.height;
-                const ctxDest = destCanvas.getContext('2d');
-                ctxDest.putImageData(imageData, 0, 0);
+                
+                resultCanvas.width = source.width;
+                resultCanvas.height = source.height;
+                resultCanvas.getContext('2d').putImageData(imageData, 0, 0);
             }
 
-            // Update threshold dari slider
             thresholdSlider.addEventListener('input', () => {
                 thresholdValue.textContent = thresholdSlider.value;
-                if (resultSection.style.display !== 'none' && cropper) {
-                    const cropData = cropper.getData(true);
-                    const img = imagePreview;
-                    const natWidth = img.naturalWidth;
-                    const natHeight = img.naturalHeight;
-                    let x = Math.max(0, cropData.x);
-                    let y = Math.max(0, cropData.y);
-                    let width = Math.min(cropData.width, natWidth - x);
-                    let height = Math.min(cropData.height, natHeight - y);
-                    if (width <= 0 || height <= 0) return;
-
-                    hiddenCanvas.width = width;
-                    hiddenCanvas.height = height;
-                    const ctxHidden = hiddenCanvas.getContext('2d');
-                    ctxHidden.drawImage(img, x, y, width, height, 0, 0, width, height);
-
-                    applyThresholdToCanvas(hiddenCanvas, resultCanvas, parseInt(thresholdSlider.value));
-                }
+                if (cropper) applyThreshold(cropper.getCroppedCanvas());
             });
 
-            // Download hasil
             btnDownload.addEventListener('click', () => {
-                if (resultCanvas.width === 0) {
-                    showToast('Belum ada hasil scan.');
-                    return;
-                }
                 const link = document.createElement('a');
-                link.download = 'scan-dokumen.png';
-                link.href = resultCanvas.toDataURL('image/png');
+                link.download = 'scan.png';
+                link.href = resultCanvas.toDataURL();
                 link.click();
             });
 
-            // SHARE hasil scan
-            btnShare.addEventListener('click', async () => {
-                if (resultCanvas.width === 0) {
-                    showToast('Belum ada hasil scan.');
-                    return;
-                }
+            btnReset.addEventListener('click', () => location.reload());
 
-                // Konversi canvas ke blob
-                resultCanvas.toBlob(async (blob) => {
-                    if (!blob) {
-                        showToast('Gagal memproses gambar.');
-                        return;
-                    }
-
-                    const file = new File([blob], 'scan-dokumen.png', { type: 'image/png' });
-
-                    // Cek apakah Web Share API mendukung file
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        try {
-                            await navigator.share({
-                                title: 'Hasil Scan Dokumen',
-                                text: 'Ini adalah hasil scan dokumen saya.',
-                                files: [file]
-                            });
-                            showToast('Berhasil dibagikan!');
-                        } catch (err) {
-                            if (err.name !== 'AbortError') {
-                                showToast('Gagal berbagi: ' + err.message);
-                            }
-                        }
-                    } else {
-                        // Fallback: buka tautan download atau salin ke clipboard
-                        try {
-                            await navigator.clipboard.writeText('Saya telah memindai dokumen menggunakan aplikasi ini. Lihat hasilnya!');
-                            showToast('Teks disalin ke clipboard (share tidak didukung browser ini)');
-                        } catch (clipErr) {
-                            // Jika clipboard gagal, beri opsi download
-                            if (confirm('Browser tidak mendukung fitur share. Download gambar?')) {
-                                const link = document.createElement('a');
-                                link.download = 'scan-dokumen.png';
-                                link.href = resultCanvas.toDataURL('image/png');
-                                link.click();
-                            }
-                        }
-                    }
-                }, 'image/png');
-            });
-
-            // Reset / scan baru
-            btnReset.addEventListener('click', () => {
-                resultSection.style.display = 'none';
-                cropContainer.style.display = 'none';
-                if (cameraSection.style.display === 'block') {
-                    // kamera tetap menyala, tapi kita bisa kosongkan crop
-                } else if (uploadSection.style.display === 'block') {
-                    fileInput.value = '';
-                }
-                if (cropper) {
-                    cropper.destroy();
-                    cropper = null;
-                }
-                imagePreview.src = '';
-            });
-
-            // Bersihkan saat halaman ditutup
-            window.addEventListener('beforeunload', () => {
-                stopCamera();
-            });
-
-            // Mulai dengan kamera? Tidak, agar tidak meminta izin otomatis.
-            // Biarkan pengguna memilih.
         })();
     </script>
 </body>
-  </html>
+</html>
